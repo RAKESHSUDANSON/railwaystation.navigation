@@ -1,0 +1,12 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "edge",
+            "request": "launch",
+            "name": "Open index.html in Edge",
+            "file": "c:\\Users\\rakes\\OneDrive\\Documents\\rail\\index.html",
+            "webRoot": "c:\\Users\\rakes\\OneDrive\\Documents\\rail"
+        }
+    ]
+}

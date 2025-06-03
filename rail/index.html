@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Railway Station Navigation</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+  <link rel="stylesheet" href="https://unpkg.com/bootstrap@5.0.0-beta3/dist/css/bootstrap.min.css">
+  <style>
+    #map {
+      height: 600px;
+      width: 100%;
+      margin-top: 120px;
+    }
+    .search-container {
+      position: absolute;
+      top: 100px;
+      left: 20px;
+      background-color: rgba(255, 255, 255, 0.8);
+      padding: 10px;
+      border-radius: 5px;
+      z-index: 999;
+    }
+    input[type="text"] {
+      padding: 5px;
+      margin: 5px;
+      width: 150px;
+    }
+    button {
+      padding: 5px 10px;
+      margin: 5px;
+    }
+    .voice-command-button {
+      position: absolute;
+      top: 10px;
+      right: 20px;
+      background-color: #4CAF50;
+      color: white;
+      padding: 10px;
+      border-radius: 5px;
+      cursor: pointer;
+      z-index: 999;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Navbar -->
+  <nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <a class="navbar-brand" href="#">Tirunelveli Railway Station</a>
+    <div class="collapse navbar-collapse">
+      <ul class="navbar-nav">
+        <li class="nav-item">
+          <a class="nav-link" href="index.html">Home</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="places.html">Places</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="feedback.html">Feedback & Ratings</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="feedbackShow.html">Show Feedback</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="schedule.html">Train Schedule</a>
+        </li>
+      </ul>
+    </div>
+  </nav>
+
+  <!-- Voice Command Button -->
+  <button class="voice-command-button" onclick="startVoiceRecognition()">🎤 Start Voice Command</button>
+
+  <!-- Search Section -->
+  <div class="search-container">
+    <input type="text" id="from" list="places" placeholder="From..." />
+    <datalist id="places">
+      <option value="Platform 1">
+      <option value="Platform 2">
+      <option value="Shops">
+      <option value="Ticket Counter">
+      <option value="Water Area">
+      <option value="Seating Area">
+      <option value="Clock">
+      <option value="Steps">
+      <option value="Maps">
+      <option value="Food Court">
+      <option value="Restrooms">
+      <option value="Entrance">
+      <option value="Exit">
+      <option value="Taxi Stand">
+      <option value="Security Checkpoint">
+      <option value="Customer Service">
+      <option value="Emergency Exit">
+      <option value="First Aid Kit">
+    </datalist>
+    
+    <input type="text" id="to" list="places" placeholder="To..." />
+    <button onclick="navigate()">Navigate</button>
+  </div>
+
+  <!-- Map Container -->
+  <div id="map"></div>
+
+  <!-- Include Leaflet.js Script -->
+  <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+  <script src="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.js"></script>
+  <script>
+    // Initialize the map
+    var map = L.map('map').setView([8.7219, 77.7005], 15); // Coordinates for Tirunelveli Railway Station
+
+    // Add the tile layer (Map layer)
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    }).addTo(map);
+
+    // Define custom icons for places
+    var icons = {
+      platform: L.icon({
+        iconUrl: 'https://upload.wikimedia.org/wikipedia/commons/e/e1/Train_station_icon.svg',
+        iconSize: [32, 32],
+        iconAnchor: [16, 32],
+        popupAnchor: [0, -32]
+      }),
+      shop: L.icon({
+        iconUrl: 'https://upload.wikimedia.org/wikipedia/commons/6/6b/Shopping_cart_icon.svg',
+        iconSize: [32, 32],
+        iconAnchor: [16, 32],
+        popupAnchor: [0, -32]
+      }),
+      ticket: L.icon({
+        iconUrl: 'https://upload.wikimedia.org/wikipedia/commons/a/a3/Ticket_icon.svg',
+        iconSize: [32, 32],
+        iconAnchor: [16, 32],
+        popupAnchor: [0, -32]
+      }),
+      water: L.icon({
+        iconUrl: 'https://upload.wikimedia.org/wikipedia/commons/1/1d/Water_icon.svg',
+        iconSize: [32, 32],
+        iconAnchor: [16, 32],
+        popupAnchor: [0, -32]
+      }),
+      seating: L.icon({
+        iconUrl: 'https://upload.wikimedia.org/wikipedia/commons/a/aa/Seating_icon.svg',
+        iconSize: [32, 32],
+        iconAnchor: [16, 32],
+        popupAnchor: [0, -32]
+      }),
+      clock: L.icon({
+        iconUrl: 'https://upload.wikimedia.org/wikipedia/commons/a/a6/Clock_icon.svg',
+        iconSize: [32, 32],
+        iconAnchor: [16, 32],
+        popupAnchor: [0, -32]
+      }),
+      restroom: L.icon({
+        iconUrl: 'https://upload.wikimedia.org/wikipedia/commons/a/a7/Restroom_icon.svg',
+        iconSize: [32, 32],
+        iconAnchor: [16, 32],
+        popupAnchor: [0, -32]
+      }),
+      taxi: L.icon({
+        iconUrl: 'https://upload.wikimedia.org/wikipedia/commons/f/f9/Taxi_icon.svg',
+        iconSize: [32, 32],
+        iconAnchor: [16, 32],
+        popupAnchor: [0, -32]
+      }),
+      emergency: L.icon({
+        iconUrl: 'https://upload.wikimedia.org/wikipedia/commons/c/c3/Emergency_exit_icon.svg',
+        iconSize: [32, 32],
+        iconAnchor: [16, 32],
+        popupAnchor: [0, -32]
+      })
+    };
+
+    // Add markers for places (example)
+    var places = [
+      { name: "Platform 1", lat: 8.7221, lon: 77.7012, icon: icons.platform, description: "Platform 1" },
+      { name: "Platform 2", lat: 8.7224, lon: 77.7020, icon: icons.platform, description: "Platform 2" },
+      { name: "Shops", lat: 8.7230, lon: 77.7000, icon: icons.shop, description: "Shops for food and beverages" },
+      { name: "Ticket Counter", lat: 8.7218, lon: 77.7016, icon: icons.ticket, description: "Ticket counter" },
+      { name: "Water Area", lat: 8.7215, lon: 77.7022, icon: icons.water, description: "Water refill area" },
+      { name: "Seating Area", lat: 8.7226, lon: 77.7025, icon: icons.seating, description: "Seating area" },
+      { name: "Clock", lat: 8.7222, lon: 77.7030, icon: icons.clock, description: "Clock near platform" },
+      { name: "Restrooms", lat: 8.7212, lon: 77.7014, icon: icons.restroom, description: "Restroom facilities" },
+      { name: "Food Court", lat: 8.7233, lon: 77.7006, icon: icons.shop, description: "Food court area" },
+      { name: "Taxi Stand", lat: 8.7236, lon: 77.7011, icon: icons.taxi, description: "Taxi Stand" },
+      { name: "Security Checkpoint", lat: 8.7217, lon: 77.7019, icon: icons.emergency, description: "Security checkpoint" },
+      { name: "Emergency Exit", lat: 8.7232, lon: 77.7028, icon: icons.emergency, description: "Emergency exit" }
+    ];
+
+    // Loop through places to add markers
+    places.forEach(function(place) {
+      L.marker([place.lat, place.lon], { icon: place.icon })
+        .addTo(map)
+        .bindPopup("<b>" + place.name + "</b><br>" + place.description);
+    });
+
+    // Function to navigate from 'from' to 'to'
+    function navigate() {
+      var from = document.getElementById("from").value;
+      var to = document.getElementById("to").value;
+      var fromPlace = places.find(p => p.name === from);
+      var toPlace = places.find(p => p.name === to);
+
+      if (fromPlace && toPlace) {
+        var route = L.Routing.control({
+          waypoints: [
+            L.latLng(fromPlace.lat, fromPlace.lon),
+            L.latLng(toPlace.lat, toPlace.lon)
+          ]
+        }).addTo(map);
+
+        // Voice Over Directions
+        speak("Navigating from " + fromPlace.name + " to " + toPlace.name);
+      } else {
+        alert("Please select valid 'From' and 'To' places.");
+      }
+    }
+
+    // Start voice recognition function
+    function startVoiceRecognition() {
+      var recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+      recognition.lang = 'en-US';
+      recognition.start();
+
+      recognition.onresult = function(event) {
+        var transcript = event.results[0][0].transcript.toLowerCase();
+        alert("You said: " + transcript);
+
+        // Try to extract places from the transcript
+        var fromPlace = null;
+        var toPlace = null;
+
+        places.forEach(function(place) {
+          if (transcript.includes(place.name.toLowerCase())) {
+            if (!fromPlace) {
+              fromPlace = place;
+            } else {
+              toPlace = place;
+            }
+          }
+        });
+
+        if (fromPlace && toPlace) {
+          document.getElementById("from").value = fromPlace.name;
+          document.getElementById("to").value = toPlace.name;
+          navigate();
+        } else {
+          alert("Sorry, I couldn't find the places in your command. Please try again.");
+        }
+      };
+
+      recognition.onerror = function(event) {
+        alert("Sorry, there was an error recognizing your speech. Please try again.");
+      };
+    }
+
+    // Function to make the system speak out the directions
+    function speak(text) {
+      var utterance = new SpeechSynthesisUtterance(text);
+      speechSynthesis.speak(utterance);
+    }
+  </script>
+</body>
+</html>

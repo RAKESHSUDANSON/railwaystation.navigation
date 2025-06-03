@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>All User Feedback</title>
+  <link rel="stylesheet" href="https://unpkg.com/bootstrap@5.0.0-beta3/dist/css/bootstrap.min.css">
+  
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-database-compat.js"></script>
+
+  <script>
+    // Firebase configuration (Replace with your actual Firebase project config)
+    const firebaseConfig = {
+      apiKey: "AIzaSyBBvxDlKvCMhnHmotp1xTog8BkOkeElbKU",
+      authDomain: "railway-navigation-600d2.firebaseapp.com",
+      databaseURL: "https://railway-navigation-600d2-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "railway-navigation-600d2",
+      storageBucket: "railway-navigation-600d2.firebasestorage.app",
+      messagingSenderId: "1038438923664",
+      appId: "1:1038438923664:web:f4cee1622a043531f18715",
+      measurementId: "G-3BY773M6HZ"
+    };
+
+    // Initialize Firebase
+    const app = firebase.initializeApp(firebaseConfig);
+    const database = firebase.database(app);
+
+    // Function to retrieve and display feedback
+    function loadFeedback() {
+      const feedbackList = document.getElementById("feedbackList");
+      // Reference to the feedback node in Firebase
+      const feedbackRef = firebase.database().ref('feedbacks');
+
+      feedbackRef.once('value', (snapshot) => {
+        feedbackList.innerHTML = ''; // Clear any existing feedback
+        
+        // Loop through each feedback entry
+        snapshot.forEach((childSnapshot) => {
+          const feedback = childSnapshot.val();
+          const feedbackItem = document.createElement('div');
+          feedbackItem.classList.add('card', 'mb-3');
+          feedbackItem.innerHTML = `
+            <div class="card-body">
+              <h5 class="card-title">Rating: ${feedback.rating}</h5>
+              <p class="card-text">${feedback.feedback}</p>
+              <footer class="blockquote-footer">Submitted on ${new Date(feedback.timestamp).toLocaleString()}</footer>
+            </div>
+          `;
+          feedbackList.appendChild(feedbackItem);
+        });
+      }).catch(error => {
+        console.error("Error fetching feedback:", error);
+        alert("Error loading feedback.");
+      });
+    }
+
+    // Load feedback when the page is ready
+    window.onload = loadFeedback;
+  </script>
+</head>
+<body>
+
+  <!-- Navbar -->
+  <nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <a class="navbar-brand" href="#">Tirunelveli Railway Station</a>
+    <div class="collapse navbar-collapse">
+      <ul class="navbar-nav">
+        <li class="nav-item">
+          <a class="nav-link" href="index.html">Home</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="places.html">Places</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="feedback.html">Feedback & Ratings</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="feedbackShow.html">Show Feedback</a>
+          </li>
+        <li class="nav-item">
+          <a class="nav-link" href="schedule.html">Train Schedule</a>
+        </li>
+      </ul>
+    </div>
+  </nav>
+
+  <!-- Feedback List -->
+  <div class="container mt-5">
+    <h2>All User Feedback</h2>
+    <div id="feedbackList">
+      <!-- Feedback items will be dynamically inserted here -->
+    </div>
+  </div>
+
+</body>
+</html>
